@@ -4,8 +4,7 @@ import logging
 from scrapy.selector import Selector
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-#from tfrrspipeline.items import TFRRSpipelineItem
-from tfrrspipeline.items import athletepipelineItem
+from tfrrspipeline.items import TFRRSpipelineItem
 
 # Get Brendan's team urls
 with open("/Users/dmcdonnell/Desktop/conf_team_links.csv") as f:
@@ -76,8 +75,6 @@ end
                 yield SplashRequest(url=url, callback=self.parse_other_pages, endpoint='execute', args={'lua_source': self.script, "n": i}, dont_filter = True)
 
     def parse_other_pages(self, response):
-        athleteitem = athletepipelineItem()
-        athleteitem['Season'] = response.xpath('option[selected]').get().strip()
         for i in range(len(response.data)):
             yield response.follow(url = response.data[i], callback = self.parse2)
 

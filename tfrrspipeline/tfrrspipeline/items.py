@@ -7,15 +7,15 @@
 
 import scrapy
 
-# class TFRRSpipelineItem(scrapy.Item):
-#         AthleteName = scrapy.Field()
-#         Grade = scrapy.Field()
-#         Team = scrapy.Field()
-#         Location = scrapy.Field()
-#         EventDate = scrapy.Field()
-#         Event = scrapy.Field()
-#         Performance = scrapy.Field()
-#         Place = scrapy.Field()
+class TFRRSpipelineItem(scrapy.Item):
+        AthleteName = scrapy.Field()
+        Grade = scrapy.Field()
+        Team = scrapy.Field()
+        Location = scrapy.Field()
+        EventDate = scrapy.Field()
+        Event = scrapy.Field()
+        Performance = scrapy.Field()
+        Place = scrapy.Field()
 
-class athletepipelineItem(scrapy.Item):
-        season = scrapy.Field()
+# class athletepipelineItem(scrapy.Item):
+#         season = scrapy.Field()

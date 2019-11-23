@@ -11,8 +11,8 @@
 
 BOT_NAME = 'athletepipeline'
 
-SPIDER_MODULES = ['athletepipeline.spiders']
-NEWSPIDER_MODULE = 'athletepipeline.spiders'
+SPIDER_MODULES = ['tfrrspipeline.spiders']
+NEWSPIDER_MODULE = 'tfrrspipeline.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -69,8 +69,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   #'tfrrspipeline.pipelines.TFRRSpipeline': 300,
-   'athletepipeline.pipelines.athletepipeline': 300
+   'tfrrspipeline.pipelines.TFRRSpipeline': 300,
+   # 'athletepipeline.pipelines.athletepipeline': 300
 }
 
 # Configure SQL database settings
