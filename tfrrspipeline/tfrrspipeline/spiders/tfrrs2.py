@@ -61,7 +61,7 @@ function main(splash, args)
     end
   end
 
-  return treat.as_array(hrefs), season2
+  return treat.as_array(hrefs)
 end
 '''
   #also need to return team, season from dropdown, athlete name, athlete grade
@@ -81,7 +81,7 @@ end
         # Get athlete data, append it to all other athlete data in a dataframe
     def parse2(self, response):
         #Full page container
-        Page = response.xpath('//div[@class = "page container"]')
+        page = response.xpath('//div[@class = "page container"]')
 
         #Meet results container
         allresults = response.xpath('//div[@id = "meet-results"]')
