@@ -16,6 +16,8 @@ import scrapy
 #         Event = scrapy.Field()
 #         Performance = scrapy.Field()
 #         Place = scrapy.Field()
+class TFRRSpipelineItem(scrapy.Item):
+        title = scrapy.Field()
 
-class athletepipelineItem(scrapy.Item):
-        season = scrapy.Field()
+# class athletepipelineItem(scrapy.Item):
+#         Season = scrapy.Field()

@@ -9,11 +9,10 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'athletepipeline'
+BOT_NAME = 'tfrrspipeline'
 
-SPIDER_MODULES = ['athletepipeline.spiders']
-NEWSPIDER_MODULE = 'athletepipeline.spiders'
-
+SPIDER_MODULES = ['tfrrspipeline.spiders']
+NEWSPIDER_MODULE = 'tfrrspipeline.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'tutorial (+http://www.yourdomain.com)'
@@ -69,8 +68,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   #'tfrrspipeline.pipelines.TFRRSpipeline': 300,
-   'athletepipeline.pipelines.athletepipeline': 300
+   'tfrrspipeline.pipelines.TFRRSpipeline': 300
+   # 'tfrrspipeline.pipelines.athletepipeline': 400
 }
 
 # Configure SQL database settings
