@@ -68,9 +68,12 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'tfrrspipeline.pipelines.TFRRSpipeline': 300
+    'scrapy.pipelines.images.ImagesPipeline': 1
+    , 'tfrrspipeline.pipelines.rosterpipeline': 300
    # 'tfrrspipeline.pipelines.athletepipeline': 400
 }
+
+IMAGES_STORE = '/Users/dmcdonnell/Desktop/Team_img'
 
 # Configure SQL database settings
 DB_SETTINGS = {

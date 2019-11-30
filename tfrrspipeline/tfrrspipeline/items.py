@@ -16,8 +16,16 @@ import scrapy
 #         Event = scrapy.Field()
 #         Performance = scrapy.Field()
 #         Place = scrapy.Field()
-class TFRRSpipelineItem(scrapy.Item):
-        title = scrapy.Field()
 
-# class athletepipelineItem(scrapy.Item):
-#         Season = scrapy.Field()
+class rosterpipelineItem(scrapy.Item):
+        gender = scrapy.Field()
+        season = scrapy.Field()
+        teamname = scrapy.Field()
+        athleteurl = scrapy.Field()
+        athletename = scrapy.Field()
+        grade = scrapy.Field()
+        seasonorder = scrapy.Field()
+
+class ImagesPipelineItem(scrapy.Item):
+    image_urls = scrapy.Field()
+    images = scrapy.Field()

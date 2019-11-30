@@ -1,10 +1,13 @@
+# To connect to splash run: sudo docker run -p 8050:8050 scrapinghub/splash
 import scrapy
+import requests
 from scrapy_splash import SplashRequest
 import logging
 from scrapy.selector import Selector
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
-from tfrrspipeline.items import TFRRSpipelineItem
+from tfrrspipeline.items import rosterpipelineItem
+from tfrrspipeline.items import ImagesPipelineItem
 # from tfrrspipeline.items import athletepipelineItem
 
 # Get Brendan's team urls
@@ -17,6 +20,7 @@ brendanurl = ['https:' + i for i in s]
 # Run spider
 class ResultSpider(scrapy.Spider):
     name = 'tfrrs2'
+
 
     script = '''
 function main(splash, args)
@@ -47,7 +51,7 @@ function main(splash, args)
     splash:wait(1)
     season2 = splash:select('option[selected]').innerHTML
   end
-	while splash:select('td.tablesaw-priority-persist a') == nil do
+	while splash:select('[class = "col-lg-4 "]') == nil do
     splash:wait(.1)
   end
 
@@ -57,24 +61,45 @@ end
 
 # Start spider requests
     def start_requests(self):
-        n = 26
+        n = 29
         for url in brendanurl:
+            yield SplashRequest(url=url, callback=self.img_parse, endpoint='execute', args={'lua_source': self.script, "n": 0}, dont_filter = True)
             for i in range(n):
                 yield SplashRequest(url=url, callback=self.parse_other_pages, endpoint='execute', args={'lua_source': self.script, "n": i}, dont_filter = True)
 
+# PIPELINE 1: Team image - saved locally
+    def img_parse(self, response):
+        img_item = ImagesPipelineItem()
+        img_item['image_urls'] = [response.xpath('//h3[@class = "panel-title large-title"]/img/@src').get()]
+        return img_item
+
     def parse_other_pages(self, response):
-        # item = athletepipelineItem()
-        # item['Season'] = response.xpath('//option[@selected]/text()').get().strip()
-        # yield item
+# PIPELINE 2: Team rosters
+        rosteritem = rosterpipelineItem()
+        gender = response.xpath('//h3[@class="panel-title panel-actions"]/text()').get()[0]
+        season = response.xpath('//option[@selected]/text()').get().strip()
+        if "Indoor" in season:
+            seasonorder = str(season[0:4]) + '02'
+        elif "Outdoor" in season:
+            seasonorder = str(int(season[0:4]) - 1) + '03'
+        else:
+            seasonorder = str(season[0:4]) + '01'
+        teamname = response.xpath('//div[@class = "panel-heading"]/h3//text()').getall()[1].strip().title()
+        roster = response.xpath('//div[@class = "col-lg-4 "]//tbody')
 
-        #Scrape and store the data
-        item = TFRRSpipelineItem()
-        title = response.xpath('/html/body/form/div/div/div/div[1]/h3[2]/text()').get()
-        item['title'] = title
-        yield item
+        for i in range(len(roster.xpath('.//tr'))):
+            rosteritem['gender'] = gender
+            rosteritem['season'] = season
+            rosteritem['seasonorder'] = seasonorder
+            rosteritem['teamname'] = teamname
+            rosteritem['athleteurl'] = 'https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip()
+            rosteritem['athletename'] = roster.xpath('.//tr['+str(i+1)+']/td[1]/a/text()').get().strip()
+            rosteritem['grade'] = roster.xpath('.//tr['+str(i+1)+']/td[2]/text()').get().strip()
+            yield rosteritem
 
+# PIPELINE 3: Athlete results
         # for i in range(len(response.data)):
-        #     yield response.follow(url = response.data[i], callback = self.parse2)
+        # yield response.follow(url = response.data[i], callback = self.parse2)
 
         # Get athlete data, append it to all other athlete data in a dataframe
     # def parse2(self, response):
