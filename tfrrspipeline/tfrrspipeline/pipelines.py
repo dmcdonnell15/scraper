@@ -15,8 +15,7 @@ from tfrrspipeline.items import rosterpipelineItem
 from tfrrspipeline.items import ImagesPipelineItem
 from tfrrspipeline.items import resultspipelineItem
 
-# PIPELINE 2: Team rosters
-class rosterpipeline(object):
+class TFRRSpipeline(object):
 
     def __init__(self, db, user, passwd, host):
         self.db = db
@@ -51,52 +50,6 @@ class rosterpipeline(object):
                             grade text,
                             seasonorder text
                             )""")
-
-    def process_item(self, rosteritem, spider):
-        if isinstance(rosteritem, rosterpipelineItem):
-            self.store_db_roster(rosteritem)
-            return rosteritem
-
-    def store_db_roster(self, rosteritem):
-        self.cursor.execute("""INSERT INTO rosters (gender, season, rosterteam, rosterurl, rostername, grade, seasonorder)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-                            (
-                                rosteritem.get('gender'),
-                                rosteritem.get('season'),
-                                rosteritem.get('rosterteam'),
-                                rosteritem.get('rosterurl'),
-                                rosteritem.get('rostername'),
-                                rosteritem.get('grade'),
-                                rosteritem.get('seasonorder')
-                            ))
-        self.conn.commit()
-
-# PIPELINE 3: Athlete results
-class resultspipeline(object):
-
-    def __init__(self, db, user, passwd, host):
-        self.db = db
-        self.user = user
-        self.passwd = passwd
-        self.host = host
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        db_settings = crawler.settings.getdict("DB_SETTINGS")
-        if not db_settings:
-            raise NotConfigured
-        db = db_settings['db']
-        user = db_settings['user']
-        passwd = db_settings['passwd']
-        host = db_settings['host']
-        return cls(db, user, passwd, host)
-
-    def open_spider(self, spider):
-        self.conn = mysql.connector.connect(db=self.db,
-                               user=self.user, passwd=self.passwd,
-                               host=self.host,
-                               charset='utf8', use_unicode=True)
-        self.cursor = self.conn.cursor()
         self.cursor.execute("""DROP TABLE IF EXISTS athleteresults""")
         self.cursor.execute("""CREATE TABLE athleteresults (
                             resultname text,
@@ -109,23 +62,42 @@ class resultspipeline(object):
                             place text
                             )""")
 
-    def process_item(self, resultsitem, spider):
-        if isinstance(resultsitem, resultspipelineItem):
-            self.store_db_results(resultsitem)
-            return resultsitem
+    def process_item(self, item, spider):
+        if isinstance(item, rosterpipelineItem):
+            self.store_db_roster(item)
+            return item
+        elif isinstance(item, resultspipelineItem):
+            self.store_db_results(item)
+            return item
+        else:
+            return item
 
-    def store_db_results(self, resultsitem):
+    def store_db_results(self, item):
         self.cursor.execute("""INSERT INTO athleteresults (resultname, resulturl, team, location, eventdate, event, performance, place)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                             (
-                                resultsitem.get('resultname'),
-                                resultsitem.get('resulturl'),
-                                resultsitem.get('team'),
-                                resultsitem.get('location'),
-                                resultsitem.get('eventdate'),
-                                resultsitem.get('event'),
-                                resultsitem.get('performance'),
-                                resultsitem.get('place')
+                                item.get('resultname'),
+                                item.get('resulturl'),
+                                item.get('team'),
+                                item.get('location'),
+                                item.get('eventdate'),
+                                item.get('event'),
+                                item.get('performance'),
+                                item.get('place')
+                            ))
+        self.conn.commit()
+
+    def store_db_roster(self, item):
+        self.cursor.execute("""INSERT INTO rosters (gender, season, rosterteam, rosterurl, rostername, grade, seasonorder)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                            (
+                                item.get('gender'),
+                                item.get('season'),
+                                item.get('rosterteam'),
+                                item.get('rosterurl'),
+                                item.get('rostername'),
+                                item.get('grade'),
+                                item.get('seasonorder')
                             ))
         self.conn.commit()
 

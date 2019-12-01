@@ -66,15 +66,15 @@ end
             for i in range(n):
                 yield SplashRequest(url=url, callback=self.parse_other_pages, endpoint='execute', args={'lua_source': self.script, "n": i}, dont_filter = True)
 
-# PIPELINE 1: Team image - saved locally
+# Team image - saved locally
     def img_parse(self, response):
         img_item = ImagesPipelineItem()
         img_item['image_urls'] = [response.xpath('//h3[@class = "panel-title large-title"]/img/@src').get()]
         return img_item
 
     def parse_other_pages(self, response):
-# PIPELINE 2: Team rosters
-        rosteritem = rosterpipelineItem()
+# Team rosters
+        item = rosterpipelineItem()
         gender = response.xpath('//h3[@class="panel-title panel-actions"]/text()').get()[0]
         season = response.xpath('//option[@selected]/text()').get().strip()
         if "Indoor" in season:
@@ -89,16 +89,16 @@ end
 
         for i in range(len(roster.xpath('.//tr'))):
             urllist.append('https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip())
-            rosteritem['gender'] = gender
-            rosteritem['season'] = season
-            rosteritem['seasonorder'] = seasonorder
-            rosteritem['rosterteam'] = rosterteam
-            rosteritem['rosterurl'] = 'https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip()
-            rosteritem['rostername'] = roster.xpath('.//tr['+str(i+1)+']/td[1]/a/text()').get().strip()
-            rosteritem['grade'] = roster.xpath('.//tr['+str(i+1)+']/td[2]/text()').get().strip()
-            yield rosteritem
+            item['gender'] = gender
+            item['season'] = season
+            item['seasonorder'] = seasonorder
+            item['rosterteam'] = rosterteam
+            item['rosterurl'] = 'https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip()
+            item['rostername'] = roster.xpath('.//tr['+str(i+1)+']/td[1]/a/text()').get().strip()
+            item['grade'] = roster.xpath('.//tr['+str(i+1)+']/td[2]/text()').get().strip()
+            yield item
 
-# PIPELINE 3: Athlete results
+# Athlete results
         for i in range(len(urllist)):
             yield response.follow(url = urllist[i], callback = self.parse2)
 
@@ -116,18 +116,18 @@ end
         title = page.xpath('.//div[@class = "panel-heading"]/a[1]//h3//text()').get().strip().title().splitlines()
 
         # Name of items to scrape
-        resultsitem = resultspipelineItem()
+        item = resultspipelineItem()
 
         if len(divs) == 0:
-            resultsitem['resultname'] = title[0]
-            resultsitem['resulturl'] = response.request.url
-            resultsitem['team'] = ''
-            resultsitem['location'] = ''
-            resultsitem['eventdate'] = ''
-            resultsitem['event'] = ''
-            resultsitem['performance'] = ''
-            resultsitem['place'] = ''
-            yield resultsitem
+            item['resultname'] = title[0]
+            item['resulturl'] = response.request.url
+            item['team'] = ''
+            item['location'] = ''
+            item['eventdate'] = ''
+            item['event'] = ''
+            item['performance'] = ''
+            item['place'] = ''
+            yield item
         else:
             for i in range(len(divs)):
                 place = [s.replace('\xa0\n', ' ') for s in allresults.xpath('./div['+str(i+1)+']//tr/td[3]/text()').getall()]
@@ -135,12 +135,12 @@ end
                 performance = [s.strip() for s in allresults.xpath('./div['+str(i+1)+']//tr/td[2]/a/text()').getall()]
 
                 for index, event in enumerate(events):
-                    resultsitem['resultname'] = title[0]
-                    resultsitem['resulturl']= response.request.url
-                    resultsitem['team'] = page.xpath('.//div[@class = "panel-heading"]/a[3]/h3/text()').get().strip().title()
-                    resultsitem['location'] = allresults.xpath('./div['+str(i+1)+']//th//a/text()').get().strip()
-                    resultsitem['eventdate'] = allresults.xpath('./div['+str(i+1)+']//th//span/text()').get().strip()
-                    resultsitem['event'] = events[index]
-                    resultsitem['performance'] = performance[index]
-                    resultsitem['place'] = [s.strip() for s in place][index]
-                    yield resultsitem
+                    item['resultname'] = title[0]
+                    item['resulturl']= response.request.url
+                    item['team'] = page.xpath('.//div[@class = "panel-heading"]/a[3]/h3/text()').get().strip().title()
+                    item['location'] = allresults.xpath('./div['+str(i+1)+']//th//a/text()').get().strip()
+                    item['eventdate'] = allresults.xpath('./div['+str(i+1)+']//th//span/text()').get().strip()
+                    item['event'] = events[index]
+                    item['performance'] = performance[index]
+                    item['place'] = [s.strip() for s in place][index]
+                    yield item

@@ -69,8 +69,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'scrapy.pipelines.images.ImagesPipeline': 1
-    , 'tfrrspipeline.pipelines.rosterpipeline': 300
-    , 'tfrrspipeline.pipelines.resultspipeline': 400
+    , 'tfrrspipeline.pipelines.TFRRSpipeline': 300
 }
 
 IMAGES_STORE = '/Users/dmcdonnell/Desktop/Team_img'
