@@ -8,7 +8,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from tfrrspipeline.items import rosterpipelineItem
 from tfrrspipeline.items import ImagesPipelineItem
-# from tfrrspipeline.items import athletepipelineItem
+from tfrrspipeline.items import resultspipelineItem
 
 # Get Brendan's team urls
 with open("/Users/dmcdonnell/Desktop/conf_team_links.csv") as f:
@@ -20,7 +20,6 @@ brendanurl = ['https:' + i for i in s]
 # Run spider
 class ResultSpider(scrapy.Spider):
     name = 'tfrrs2'
-
 
     script = '''
 function main(splash, args)
@@ -84,61 +83,64 @@ end
             seasonorder = str(int(season[0:4]) - 1) + '03'
         else:
             seasonorder = str(season[0:4]) + '01'
-        teamname = response.xpath('//div[@class = "panel-heading"]/h3//text()').getall()[1].strip().title()
+        rosterteam = response.xpath('//div[@class = "panel-heading"]/h3//text()').getall()[1].strip().title()
         roster = response.xpath('//div[@class = "col-lg-4 "]//tbody')
+        urllist = []
 
         for i in range(len(roster.xpath('.//tr'))):
+            urllist.append('https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip())
             rosteritem['gender'] = gender
             rosteritem['season'] = season
             rosteritem['seasonorder'] = seasonorder
-            rosteritem['teamname'] = teamname
-            rosteritem['athleteurl'] = 'https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip()
-            rosteritem['athletename'] = roster.xpath('.//tr['+str(i+1)+']/td[1]/a/text()').get().strip()
+            rosteritem['rosterteam'] = rosterteam
+            rosteritem['rosterurl'] = 'https:' + roster.xpath('.//tr['+str(i+1)+']//@href').get().strip()
+            rosteritem['rostername'] = roster.xpath('.//tr['+str(i+1)+']/td[1]/a/text()').get().strip()
             rosteritem['grade'] = roster.xpath('.//tr['+str(i+1)+']/td[2]/text()').get().strip()
             yield rosteritem
 
 # PIPELINE 3: Athlete results
-        # for i in range(len(response.data)):
-        # yield response.follow(url = response.data[i], callback = self.parse2)
+        for i in range(len(urllist)):
+            yield response.follow(url = urllist[i], callback = self.parse2)
 
-        # Get athlete data, append it to all other athlete data in a dataframe
-    # def parse2(self, response):
-    #     #Full page container
-    #     page = response.xpath('//div[@class = "page container"]')
-    #
-    #     #Meet results container
-    #     allresults = response.xpath('//div[@id = "meet-results"]')
-    #
-    #     #Count the divs containing each meet's info
-    #     divs = allresults.xpath('./div')
-    #
-    #     #Scrape and store the data
-    #     title = page.xpath('.//div[@class = "panel-heading"]/a[1]//h3//text()').get().strip().title().splitlines()
-    #
-    #     Name of items to scrape
-    #     item = TFRRSpipelineItem()
-    #
-    #     for i in range(len(divs)):
-    #         place = [s.replace('\xa0\n', ' ') for s in allresults.xpath('./div['+str(i+1)+']//tr/td[3]/text()').getall()]
-    #         events = [s.strip() for s in allresults.xpath('./div['+str(i+1)+']//tr/td[1]/text()').getall()]
-    #         performance = [s.strip() for s in allresults.xpath('./div['+str(i+1)+']//tr/td[2]/a/text()').getall()]
-    #
-    #         if enumerate(events) == 0:
-    #             item['AthleteName'] = title[0]
-    #             item['Team'] = ''
-    #             item['Location'] = ''
-    #             item['EventDate'] = ''
-    #             item['Event'] = ''
-    #             item['Performance'] = ''
-    #             item['Place'] = ''
-    #             yield item
-    #         else:
-    #             for index, event in enumerate(events):
-    #                 item['AthleteName'] = title[0]
-    #                 item['Team'] = page.xpath('.//div[@class = "panel-heading"]/a[3]/h3/text()').get().strip().title()
-    #                 item['Location'] = allresults.xpath('./div['+str(i+1)+']//th//a/text()').get().strip()
-    #                 item['EventDate'] = allresults.xpath('./div['+str(i+1)+']//th//span/text()').get().strip()
-    #                 item['Event'] = events[index]
-    #                 item['Performance'] = performance[index]
-    #                 item['Place'] = [s.strip() for s in place][index]
-    #                 yield item
+    def parse2(self, response):
+        # Full page container
+        page = response.xpath('//div[@class = "page container"]')
+
+        # Meet results container
+        allresults = response.xpath('//div[@id = "meet-results"]')
+
+        # Count the divs containing each meet's info
+        divs = allresults.xpath('./div')
+
+        # Scrape and store the data
+        title = page.xpath('.//div[@class = "panel-heading"]/a[1]//h3//text()').get().strip().title().splitlines()
+
+        # Name of items to scrape
+        resultsitem = resultspipelineItem()
+
+        if len(divs) == 0:
+            resultsitem['resultname'] = title[0]
+            resultsitem['resulturl'] = response.request.url
+            resultsitem['team'] = ''
+            resultsitem['location'] = ''
+            resultsitem['eventdate'] = ''
+            resultsitem['event'] = ''
+            resultsitem['performance'] = ''
+            resultsitem['place'] = ''
+            yield resultsitem
+        else:
+            for i in range(len(divs)):
+                place = [s.replace('\xa0\n', ' ') for s in allresults.xpath('./div['+str(i+1)+']//tr/td[3]/text()').getall()]
+                events = [s.strip() for s in allresults.xpath('./div['+str(i+1)+']//tr/td[1]/text()').getall()]
+                performance = [s.strip() for s in allresults.xpath('./div['+str(i+1)+']//tr/td[2]/a/text()').getall()]
+
+                for index, event in enumerate(events):
+                    resultsitem['resultname'] = title[0]
+                    resultsitem['resulturl']= response.request.url
+                    resultsitem['team'] = page.xpath('.//div[@class = "panel-heading"]/a[3]/h3/text()').get().strip().title()
+                    resultsitem['location'] = allresults.xpath('./div['+str(i+1)+']//th//a/text()').get().strip()
+                    resultsitem['eventdate'] = allresults.xpath('./div['+str(i+1)+']//th//span/text()').get().strip()
+                    resultsitem['event'] = events[index]
+                    resultsitem['performance'] = performance[index]
+                    resultsitem['place'] = [s.strip() for s in place][index]
+                    yield resultsitem

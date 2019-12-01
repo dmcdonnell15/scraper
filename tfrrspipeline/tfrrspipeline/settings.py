@@ -70,7 +70,7 @@ DOWNLOADER_MIDDLEWARES = {
 ITEM_PIPELINES = {
     'scrapy.pipelines.images.ImagesPipeline': 1
     , 'tfrrspipeline.pipelines.rosterpipeline': 300
-   # 'tfrrspipeline.pipelines.athletepipeline': 400
+    , 'tfrrspipeline.pipelines.resultspipeline': 400
 }
 
 IMAGES_STORE = '/Users/dmcdonnell/Desktop/Team_img'
